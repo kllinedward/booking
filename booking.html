@@ -4,40 +4,50 @@
     <meta charset="UTF-8">
     <title>曉明數學科聚餐交通方式暨雲端點餐統計系統</title>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; padding: 20px; background-color: #f4f7f6; color: #333; }
-        .main-layout { display: flex; gap: 20px; max-width: 1250px; margin: auto; }
-        .menu-card { flex: 2; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); height: 85vh; overflow-y: auto; }
-        .summary-card { flex: 1; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; position: sticky; top: 20px; height: fit-content; }
-        .recommend-box { background: #fff3e0; border: 1px solid #ffe0b2; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; line-height: 1.6; color: #333; }
-        .category-title { background: #e67e22; color: white; padding: 5px 10px; margin: 15px 0 10px; border-radius: 4px; font-weight: bold; }
-        .item-label { display: block; margin: 5px 0; cursor: pointer; padding: 3px 0; }
-        .disabled { color: #ccc; text-decoration: line-through; cursor: not-allowed; }
-        .btn-submit { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 1.1em; margin-top: 10px; }
-        .btn-submit:disabled { background: #7f8c8d; cursor: not-allowed; }
-        .btn-clear { background: #e67e22; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 8px; }
+        body { font-family: "Microsoft JhengHei", sans-serif; padding: 20px; background-color: #f8f9fa; color: #333; }
+        .main-container { display: flex; gap: 20px; max-width: 1300px; margin: auto; }
+        .left-panel { flex: 2; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); height: 92vh; overflow-y: auto; }
+        .right-panel { flex: 0.8; background: #2c3e50; color: white; padding: 20px; border-radius: 8px; position: sticky; top: 20px; height: fit-content; }
+        
+        /* 推薦預算組合區塊 - 樣式參考來源 [3] */
+        .recommend-box { background: #fff8e1; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; line-height: 1.6; }
+        
+        /* 分類標題樣式 - 橘色底條參考來源 [4] */
+        .category-header { background: #e67e22; color: white; padding: 8px 15px; margin: 20px 0 10px; border-radius: 4px; font-weight: bold; }
+        
         .input-group { margin-bottom: 15px; }
-        select, input[type="text"] { padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 95%; margin-top: 5px; box-sizing: border-box; }
-        .required-hint { color: #e74c3c; font-size: 0.8em; margin-left: 5px; }
+        input[type="text"], select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .required-text { color: #e74c3c; font-size: 0.8em; }
+        
+        .item-row { display: block; margin: 8px 0; cursor: pointer; font-size: 0.95em; }
+        .disabled { color: #ccc; text-decoration: line-through; cursor: not-allowed; }
+        
+        /* 按鈕樣式參考來源 [3] */
+        .btn-submit { background: #7f8c8d; color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 1.1em; margin-top: 10px; font-weight: bold; transition: 0.3s; }
+        .btn-submit.active { background: #27ae60; }
+        .btn-clear { background: #e67e22; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        
+        .status-hint { color: #f1c40f; font-weight: bold; margin: 15px 0; font-size: 1.1em; }
+        .footer-note { font-size: 0.8em; color: #bdc3c7; margin-top: 25px; line-height: 1.5; border-top: 1px solid #455a64; padding-top: 10px; }
     </style>
 </head>
 <body>
 <h1 style="text-align:center; margin-bottom: 0;">曉明數學科期末聚餐</h1>
 <h1 style="text-align:center; margin-top: 0;">交通方式暨雲端點餐統計系統</h1>
-
-    <div class="main-layout">
-        <div class="menu-card">
+    <div class="main-container">
+        <div class="left-panel">            
+            <!-- 推薦組合區塊：已移除無意義數字 [5] -->
             <div class="recommend-box">
-                <strong>💡 推薦預算組合(🍴餐點預算$750 - $850)</strong><br>
-                • 👑海鮮燉飯($698) + 1球冰淇淋($128) = $826 [3, 4]<br>
-                • 👑干貝奶醬麵($588) + 👑羅勒檸檬塔($228) = $816 [5, 6]<br>
-                • 👑口水雞義麵($398) + 👑歐培拉($268) + 👑甜橙咖啡($168) = $834 [5-7]
+                💡 <strong>推薦預算組合 (🍴餐點預算 $750 - $850)</strong><br>
+                • 👑海鮮燉飯($698) + 1球冰淇淋($128) = $826<br>
+                • 👑干貝奶醬麵($588) + 👑羅勒檸檬塔($228) = $816<br>
+                • 👑口水雞義麵($398) + 👑歐培拉($268) + 👑甜橙咖啡($168) = $834
             </div>
 
             <div class="input-group">
-                <label><strong>1. 同仁姓名</strong><span class="required-hint">*必填</span></label>
+                <label><strong>1. 同仁姓名</strong> <span class="required-text">*必填</span></label>
                 <input type="text" id="userName" placeholder="請輸入姓名" oninput="updateUI()">
             </div>
-
             <div class="input-group">
                 <label><strong>2. 前往方式</strong></label>
                 <select id="transport">
@@ -50,48 +60,80 @@
             <div id="menuContainer"></div>
         </div>
 
-        <div class="summary-card">
-            <h3>您的點餐摘要</h3>
-            <div id="selectedList" style="min-height: 50px; font-size: 0.9em; color: #ecf0f1;">尚未選擇餐點</div>
-            <hr>
-            <div style="font-size: 1.3em;">總金額：$<span id="totalDisplay">0</span></div>
-            <div id="statusHint" style="color:#f1c40f; margin:10px 0; font-weight:bold;">請輸入姓名並點餐</div>
-            
+        <div class="right-panel">
+            <h3 style="border-bottom: 1px solid #455a64; padding-bottom: 10px;">您的點餐摘要</h3>
+            <div id="selectedList" style="min-height: 100px; font-size: 0.95em; line-height: 1.6;">尚未選擇餐點</div>
+            <hr style="border: 0.5px solid #455a64;">
+            <div style="font-size: 1.5em; font-weight: bold;">總金額：$<span id="totalDisplay">0</span></div>
+            <div id="statusHint" class="status-hint">⚠️ 請先填寫姓名</div>
             <button id="submitBtn" class="btn-submit" onclick="uploadData()" disabled>確認提交至雲端</button>
             <button class="btn-clear" onclick="clearOnlyMenu()">僅清除已選餐點</button>
-            <p style="font-size: 0.8em; color: #bdc3c7; margin-top: 15px;">※ 點選主餐均附熔岩起士麵包乙份。</p>
+            <div class="footer-note">
+                ※ 點選主餐均附熔岩起士麵包乙份。<br>
+                ※ 供應限制：PM 14:30-17:00 不供應主餐。
+            </div>
         </div>
     </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpraJFbxd7Q_x_xBiiztC4LW9Ka7dB18szbs1_Z-JcMbYsNUsFo5CQDSDKYipU4BXK/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpraJFbxd7Q_x_xBiiztC4LW9Ka7dB18szbs1_Z-JcMbYsNUsFo5CQDSDKYipU4BXK/exec";
 const budgetMin = 750, budgetMax = 850;
 let currentItems = [], currentTotal = 0;
 
-// 從來源資料 [1]-[2] 整合的完整數據
+// 嚴格依照來源 [1] 至 [2] 的全項目資料錄入
 const menuData = [
     { cat: "主廚排餐 (附麵包)", items: [
-        { n: "👑 挪威香煎鮭魚搭北海道干貝", p: 798 }, { n: "法式油封鴨腿佐桑葚果釀醬汁", p: 798 },
-        { n: "👑 義式椒粒海鹽烤半雞", p: 698 }, { n: "季節鮮魚佐鳳梨鹹檸檬", p: 898 }, { n: "PRIME菲力牛排", p: 1298 }
+        { n: "👑 義式椒粒海鹽烤半雞", p: 698 }, { n: "👑 挪威香煎鮭魚搭北海道干貝", p: 798 },
+        { n: "法式油封鴨腿佐桑葚果釀醬汁", p: 798 }, { n: "季節鮮魚佐鳳梨鹹檸檬奶油醬汁", p: 898 },
+        { n: "美國頂級安格斯無骨牛小排", p: 998 }, { n: "👑 PRIME菲力牛排｜蒜香奶醬", p: 1298 }
     ]},
-    { cat: "義式燉飯/義大利麵 (附麵包)", items: [
-        { n: "👑 馬賽無敵海鮮燉飯", p: 698 }, { n: "👑 北港黑麻油雞肉", p: 398 }, { n: "羅馬豬肉蔥鹽燉飯", p: 398 },
-        { n: "👑 北海道干貝佐奶醬義大利麵", p: 588 }, { n: "👑 泰式酸辣鮮蝦", p: 488 }, { n: "西西里茄汁香煎雞腿排", p: 428 },
-        { n: "👑 渝江川辣口水雞皮蛋", p: 398 }, { n: "奶油起司野菇(蔬)", p: 398 }, { n: "黑松露油清炒鮮蔬野菇", p: 388 }
+    { cat: "義式燉飯 (附麵包)", items: [
+        { n: "奶油起司野菇 (蔬)", p: 398 }, { n: "👑 北港黑麻油雞肉", p: 398 },
+        { n: "羅馬豬肉蔥鹽燉飯", p: 398 }, { n: "👑 馬賽無敵海鮮", p: 698 }
     ]},
-    { cat: "開胃菜/沙拉/湯品", items: [
-        { n: "👑 橄欖油香煎中卷", p: 388 }, { n: "👑 義式清炒櫛瓜鮮蝦", p: 368 }, { n: "👑 紐奧良楓糖培根沙拉", p: 388 },
-        { n: "👑 馬賽蝦汁海鮮清湯", p: 368 }, { n: "👑 日本海炸牡蠣", p: 228 }, { n: "松露馬鈴薯球", p: 228 },
-        { n: "經典西西里海鹽脆薯", p: 198 }, { n: "法式南瓜堅果濃湯", p: 168 }
+    { cat: "義大利麵 (附麵包)", items: [
+        { n: "黑松露油清炒鮮蔬野菇 (蔬)", p: 388 }, { n: "👑 渝江川辣口水雞皮蛋", p: 398 },
+        { n: "板煎鮮蝦辣奶油貓耳麵", p: 428 }, { n: "西西里茄汁香煎雞腿排排麵", p: 428 },
+        { n: "👑 泰式酸辣鮮蝦", p: 488 }, { n: "👑 北海道干貝佐奶醬", p: 588 }
     ]},
-    { cat: "甜點/冰淇淋/提拉米蘇", items: [
-        { n: "👑 法式歐培拉", p: 268 }, { n: "巴斯克乳酪蛋糕", p: 268 }, { n: "👑 經典原味提拉米蘇", p: 258 },
-        { n: "👑 羅勒檸檬塔", p: 228 }, { n: "👑 甜心冰淇淋(1球)", p: 128 }, { n: "義式阿法奇朵", p: 188 }, { n: "👑 可麗露(一入)", p: 88 }
+    { cat: "開胃菜", items: [
+        { n: "經典西西里海鹽脆薯", p: 198 }, { n: "脆薯升級海風櫻花蝦 (+$69)", p: 267 },
+        { n: "松露馬鈴薯球", p: 228 }, { n: "👑 日本海炸牡蠣", p: 228 },
+        { n: "辣醬炸雞翅", p: 288 }, { n: "花椒酥炸丁香魚", p: 288 },
+        { n: "👑 義式清炒櫛瓜鮮蝦", p: 368 }, { n: "👑 橄欖油蒜味鮮蝦", p: 368 },
+        { n: "👑 橄欖油香煎中卷佐糖漬檸檬", p: 388 }
     ]},
-    { cat: "飲品/果汁/花草茶", items: [
-        { n: "👑 水果茶", p: 188 }, { n: "👑 尋味焙茶歐蕾", p: 188 }, { n: "👑 甜橙/西西里咖啡", p: 168 },
-        { n: "拿鐵/卡布奇諾", p: 168 }, { n: "泡泡珍珠奶茶", p: 168 }, { n: "美顏淨白奇異果汁", p: 168 },
-        { n: "活力舒活綜合果汁", p: 188 }, { n: "錫蘭紅茶/美式咖啡", p: 128 }
+    { cat: "沙拉與湯品", items: [
+        { n: "春日沙拉搭綠女神醬 (蔬)", p: 328 }, { n: "市場裡的布拉塔", p: 368 },
+        { n: "市場裡的布拉塔+西班牙風乾火腿 (+$39)", p: 407 },
+        { n: "北歐蜂蜜柚香煙燻鮭魚羽衣甘藍", p: 388 }, { n: "👑 紐奧良風炙烤楓糖培根油醋", p: 388 },
+        { n: "主廚私房湯", p: 168 }, { n: "法式南瓜堅果濃湯 (蔬)", p: 168 }, { n: "👑 馬賽蝦汁海鮮清湯", p: 368 }
+    ]},
+    { cat: "甜點與冰淇淋提拉米蘇", items: [
+        { n: "👑 羅勒檸檬塔 (蔬)", p: 228 }, { n: "👑 可麗露 (一入)", p: 88 }, { n: "👑 可麗露 (三入)", p: 238 },
+        { n: "👑 法式歐培拉", p: 268 }, { n: "巴斯克乳酪蛋糕 (蔬)", p: 268 }, { n: "法式栗子塔", p: 268 },
+        { n: "👑 法式夏洛特", p: 288 }, { n: "👑 甜心冰淇淋 (1 SCOOP)", p: 128 }, { n: "👑 甜心冰淇淋 (2 SCOOPS)", p: 168 },
+        { n: "👑 人魚的眼淚", p: 138 }, { n: "義式阿法奇朵", p: 188 },
+        { n: "👑 經典原味提拉米蘇", p: 258 }, { n: "米香焙茶提拉米蘇", p: 258 }
+    ]},
+    { cat: "咖啡與茶飲", items: [
+        { n: "美式咖啡", p: 128 }, { n: "義式濃縮 (SINGLE)", p: 118 }, { n: "義式濃縮 (DOUBLE)", p: 138 },
+        { n: "👑 甜橙咖啡", p: 168 }, { n: "👑 西西里檸檬氣泡咖啡", p: 168 },
+        { n: "👑 原味拿鐵", p: 168 }, { n: "原味拿鐵 (換燕麥奶)", p: 198 },
+        { n: "海鹽焦糖拿鐵", p: 168 }, { n: "海鹽焦糖拿鐵 (換燕麥奶)", p: 198 },
+        { n: "卡布奇諾", p: 168 }, { n: "卡布奇諾 (換燕麥奶)", p: 198 },
+        { n: "錫蘭紅茶", p: 128 }, { n: "錫蘭紅茶歐蕾", p: 158 }, { n: "👑 冰淇淋紅茶", p: 158 },
+        { n: "👑 泡泡珍珠奶茶", p: 168 }, { n: "👑 經典新鮮水果茶", p: 188 }, { n: "👑 尋味焙茶歐蕾", p: 188 }
+    ]},
+    { cat: "果汁氣泡飲與花草茶", items: [
+        { n: "👑 美顏淨白奇異果汁", p: 168 }, { n: "陽光純品香橙汁", p: 168 },
+        { n: "好漾氣色綜合果汁", p: 188 }, { n: "👑 活力舒活綜合果汁", p: 188 },
+        { n: "👑 艷夏火龍果微泡泡", p: 168 }, { n: "👑 熱帶百香鳳梨醬冰淇淋蘇打", p: 168 },
+        { n: "仲夏芒果葡萄柚冰淇淋蘇打", p: 198 }, { n: "👑 糖漬黃檸檬冰淇淋蘇打", p: 198 },
+        { n: "仲夏野莓冰淇淋蘇打", p: 198 }, { n: "👑 香甜蜜桃冰淇淋蘇打", p: 198 },
+        { n: "👑 德國Samova調情師", p: 168 }, { n: "👑 德國Samova花園派對", p: 168 },
+        { n: "👑 德國D&B心靈舒壓茶", p: 168 }, { n: "TOKI 漢方茶-舒心夜好", p: 168 },
+        { n: "👑 TOKI 漢方茶-綻顏輕纖", p: 168 }
     ]}
 ];
 
@@ -99,12 +141,12 @@ function render() {
     const container = document.getElementById('menuContainer');
     container.innerHTML = '';
     menuData.forEach(cat => {
-        let html = `<div class="category-title">${cat.cat}</div>`;
+        let html = `<div class="category-header">${cat.cat}</div>`;
         cat.items.forEach(item => {
-            const selected = currentItems.some(i => i.n === item.n);
-            const disabled = !selected && (currentTotal + item.p > budgetMax);
-            html += `<label class="item-label ${disabled?'disabled':''}">
-                <input type="checkbox" onchange="toggle('${item.n}',${item.p},this)" ${selected?'checked':''} ${disabled?'disabled':''}>
+            const isSelected = currentItems.some(i => i.n === item.n);
+            const disabled = !isSelected && (currentTotal + item.p > budgetMax);
+            html += `<label class="item-row ${disabled?'disabled':''}">
+                <input type="checkbox" onchange="toggle('${item.n}',${item.p},this)" ${isSelected?'checked':''} ${disabled?'disabled':''}>
                 ${item.n} ($${item.p})</label>`;
         });
         container.innerHTML += html;
@@ -118,36 +160,27 @@ function toggle(n, p, el) {
     render();
 }
 
-// 僅清除菜單，保留姓名與交通方式
-function clearOnlyMenu() {
-    currentItems = [];
-    currentTotal = 0;
-    render();
-}
+function clearOnlyMenu() { currentItems = []; currentTotal = 0; render(); }
 
 function updateUI() {
     const name = document.getElementById('userName').value.trim();
     document.getElementById('totalDisplay').innerText = currentTotal;
     document.getElementById('selectedList').innerText = currentItems.map(i => i.n).join(', ') || "尚未選擇";
-    
-    const btn = document.getElementById('submitBtn');
-    const hint = document.getElementById('statusHint');
+    const btn = document.getElementById('submitBtn'), hint = document.getElementById('statusHint');
     
     const isBudgetOk = (currentTotal >= budgetMin && currentTotal <= budgetMax);
     const isNameOk = (name !== "");
 
     if (!isNameOk) {
-        btn.disabled = true;
-        hint.innerText = "⚠️ 請先填寫姓名";
-        hint.style.color = "#f1c40f";
+        btn.disabled = true; btn.classList.remove('active');
+        hint.innerText = "⚠️ 請先填寫姓名"; hint.style.color = "#f1c40f";
     } else if (!isBudgetOk) {
-        btn.disabled = true;
-        hint.style.color = "#e74c3c";
-        hint.innerText = currentTotal > budgetMax ? "❌ 超出預算" : `還差 $${budgetMin - currentTotal} 達標`;
+        btn.disabled = true; btn.classList.remove('active');
+        hint.innerText = currentTotal > budgetMax ? "❌ 超過預算上限" : `還差 $${budgetMin - currentTotal} 達標`;
+        hint.style.color = currentTotal > budgetMax ? "#e74c3c" : "#f1c40f";
     } else {
-        btn.disabled = false;
-        hint.innerText = "✅ 姓名與金額皆合格！";
-        hint.style.color = "#2ecc71";
+        btn.disabled = false; btn.classList.add('active');
+        hint.innerText = "✅ 符合預算，可提交"; hint.style.color = "#2ecc71";
     }
 }
 
@@ -155,23 +188,15 @@ async function uploadData() {
     const name = document.getElementById('userName').value;
     const transport = document.getElementById('transport').value;
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.innerText = "上傳中...";
-    
+    btn.disabled = true; btn.innerText = "提交中...";
     try {
         await fetch(SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({ name, transport, items: currentItems.map(i=>i.n).join(' + '), total: currentTotal })
+            method: "POST", mode: "no-cors",
+            body: JSON.stringify({ name, transport, items: currentItems.map(i=>i.n).join('+'), total: currentTotal })
         });
         alert("提交成功！");
-        // 成功後才完全重置
-        currentItems = []; currentTotal = 0;
-        document.getElementById('userName').value = '';
-        render();
-    } catch (e) {
-        alert("提交失敗。");
-        btn.disabled = false; btn.innerText = "確認提交至雲端";
-    }
+        clearOnlyMenu(); document.getElementById('userName').value = '';
+    } catch (e) { alert("失敗"); btn.disabled = false; }
 }
 render();
 </script>
