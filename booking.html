@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>20人雲端點餐統計系統 v3.0</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", sans-serif; padding: 20px; background-color: #f4f7f6; }
+        .main-layout { display: flex; gap: 20px; max-width: 1250px; margin: auto; }
+        .menu-card { flex: 2; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); height: 85vh; overflow-y: auto; }
+        .summary-card { flex: 1; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; position: sticky; top: 20px; height: fit-content; }
+        .recommend-box { background: #fff3e0; border: 1px solid #ffe0b2; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; }
+        .category-title { background: #e67e22; color: white; padding: 5px 10px; margin: 15px 0 10px; border-radius: 4px; }
+        .item-label { display: block; margin: 5px 0; cursor: pointer; }
+        .disabled { color: #ccc; text-decoration: line-through; }
+        .btn-submit { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 1.1em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">🍴 雲端點餐統計系統 ($750 - $850)</h1>
+
+    <div class="main-layout">
+        <div class="menu-card">
+            <!-- 推薦套餐區 -->
+            <div class="recommend-box">
+                <strong>💡 推薦套餐模式 (金額皆符合預算)：</strong><br>
+                1. <strong>頂級海陸：</strong>海鮮燉飯($698) + 1球冰淇淋($128) = <strong>$826</strong><br>
+                2. <strong>法式精選：</strong>干貝奶醬麵($588) + 羅勒檸檬塔($228) = <strong>$816</strong><br>
+                3. <strong>招牌飽足：</strong>口水雞義麵($398) + 提拉米蘇($258) + 甜橙咖啡($168) = <strong>$824</strong><br>
+                4. <strong>創意鹹甜：</strong>麻油雞燉飯($398) + 炸牡蠣($228) + 阿法奇朵($188) = <strong>$814</strong><br>
+                5. <strong>清新健康(蔬)：</strong>起司野菇燉飯($398) + 南瓜濃湯($168) + 活力綜合果汁($188) = <strong>$754</strong>
+            </div>
+
+            <input type="text" id="userName" placeholder="請輸入姓名" style="width:95%; padding:10px; margin-bottom:10px; font-size:1.1em;">
+            <div id="menuContainer"></div>
+        </div>
+
+        <div class="summary-card">
+            <h3>您的點餐摘要</h3>
+            <div id="selectedList" style="min-height: 50px;">尚未選擇餐點</div>
+            <hr>
+            <div style="font-size: 1.3em;">總金額：$<span id="totalDisplay">0</span></div>
+            <div id="statusHint" style="color:#f1c40f; margin:10px 0; font-weight:bold;">還差 $750 達標</div>
+            <button id="submitBtn" class="btn-submit" onclick="uploadData()" disabled>確認提交至雲端</button>
+            <button style="background:#95a5a6; color:white; border:none; padding:10px; width:100%; border-radius:5px; cursor:pointer; margin-top:5px;" onclick="resetForm()">清除重選</button>
+        </div>
+    </div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzAPc8oEJh9DHMt1iVpG3Ot39Icv-4zUzi69FfQrhOhJeQ1Vv52jc9JhXANBVbSmDGA/exec"; 
+const budgetMin = 750, budgetMax = 850;
+let currentItems = [], currentTotal = 0;
+
+// 根據來源 [1]-[8] 整合的資料
+const menuData = [
+    { cat: "主餐 (附熔岩起士麵包，14:30-17:00不供應)", items: [
+        { n: "👑 挪威香煎鮭魚搭北海道干貝", p: 798 }, { n: "法式油封鴨腿佐桑葚果釀醬汁", p: 798 },
+        { n: "👑 馬賽無敵海鮮燉飯", p: 698 }, { n: "👑 義式椒粒海鹽烤半雞", p: 698 },
+        { n: "👑 北海道干貝佐奶醬義大利麵", p: 588 }, { n: "👑 泰式酸辣鮮蝦義大利麵", p: 488 },
+        { n: "西西里茄汁香煎雞腿排", p: 428 }, { n: "板煎鮮蝦辣奶油貓耳麵", p: 428 },
+        { n: "👑 渝江川辣口水雞皮蛋", p: 398 }, { n: "👑 北港黑麻油雞肉燉飯", p: 398 },
+        { n: "羅馬豬肉蔥鹽燉飯", p: 398 }, { n: "奶油起司野菇(蔬)", p: 398 },
+        { n: "黑松露油清炒鮮蔬野菇(蔬)", p: 388 }
+    ]},
+    { cat: "開胃菜/沙拉/湯品", items: [
+        { n: "👑 義式清炒櫛瓜鮮蝦", p: 368 }, { n: "👑 日本海炸牡蠣", p: 228 },
+        { n: "松露馬鈴薯球", p: 228 }, { n: "經典西西里海鹽脆薯", p: 198 },
+        { n: "春日沙拉搭綠女神醬(蔬)", p: 328 }, { n: "市場裡的布拉塔沙拉", p: 368 },
+        { n: "法式南瓜堅果濃湯(蔬)", p: 168 }, { n: "👑 馬賽蝦汁海鮮清湯", p: 368 }
+    ]},
+    { cat: "甜點/冰淇淋/提拉米蘇", items: [
+        { n: "👑 舌尖上的歌劇院｜歐培拉", p: 268 }, { n: "巴斯克乳酪蛋糕(蔬)", p: 268 },
+        { n: "👑 經典原味提拉米蘇", p: 258 }, { n: "👑 羅勒檸檬塔(蔬)", p: 228 },
+        { n: "👑 甜心冰淇淋 (1 SCOOP)", p: 128 }, { n: "義式阿法奇朵", p: 188 },
+        { n: "👑 可麗露 (一入)", p: 88 }
+    ]},
+    { cat: "咖啡/茶品/果汁/蘇打", items: [
+        { n: "👑 經典新鮮水果茶", p: 188 }, { n: "👑 尋味焙茶歐蕾", p: 188 },
+        { n: "👑 活力舒活綜合果汁", p: 188 }, { n: "👑 甜橙咖啡", p: 168 },
+        { n: "👑 西西里檸檬氣泡咖啡", p: 168 }, { n: "泡泡珍珠奶茶", p: 168 },
+        { n: "錫蘭紅茶", p: 128 }, { n: "美式咖啡", p: 128 }
+    ]}
+];
+
+function render() {
+    const container = document.getElementById('menuContainer');
+    container.innerHTML = '';
+    menuData.forEach(cat => {
+        let html = `<div class="category-title">${cat.cat}</div>`;
+        cat.items.forEach(item => {
+            const selected = currentItems.some(i => i.n === item.n);
+            const disabled = !selected && (currentTotal + item.p > budgetMax);
+            html += `<label class="item-label ${disabled?'disabled':''}">
+                <input type="checkbox" onchange="toggle('${item.n}',${item.p},this)" ${selected?'checked':''} ${disabled?'disabled':''}>
+                ${item.n} ($${item.p})</label>`;
+        });
+        container.innerHTML += html;
+    });
+    updateUI();
+}
+
+function toggle(n, p, el) {
+    if (el.checked) { currentItems.push({n, p}); currentTotal += p; }
+    else { currentItems = currentItems.filter(i => i.n !== n); currentTotal -= p; }
+    render();
+}
+
+function updateUI() {
+    document.getElementById('totalDisplay').innerText = currentTotal;
+    document.getElementById('selectedList').innerText = currentItems.map(i => i.n).join(', ') || "尚未選擇";
+    const btn = document.getElementById('submitBtn'), hint = document.getElementById('statusHint');
+    if (currentTotal >= budgetMin && currentTotal <= budgetMax) {
+        btn.disabled = false; hint.innerText = "✅ 符合預算，可提交"; hint.style.color = "#2ecc71";
+    } else {
+        btn.disabled = true; hint.style.color = "#f1c40f";
+        hint.innerText = currentTotal > budgetMax ? "❌ 超出預算" : `還差 $${budgetMin - currentTotal}`;
+    }
+}
+
+async function uploadData() {
+    const name = document.getElementById('userName').value;
+    if (!name) return alert("請輸入姓名");
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.innerText = "傳送中...";
+    try {
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ name, items: currentItems.map(i=>i.n).join(' + '), total: currentTotal })
+        });
+        alert("提交成功！");
+        resetForm();
+    } catch (e) {
+        alert("提交失敗，請檢查網址設定。");
+        btn.disabled = false; btn.innerText = "確認提交至雲端";
+    }
+}
+
+function resetForm() {
+    currentItems = []; currentTotal = 0;
+    document.getElementById('userName').value = '';
+    render();
+}
+render();
+</script>
+</body>
+</html>
