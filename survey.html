@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>曉明女中數學科 Feedback Survey</title>
+    <!-- 引入精品餐廳感字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #b89355; --bg-cream: #fdfaf5; --text-dark: #3d3d3d; }
+        body { font-family: 'Noto Serif TC', serif; background-color: #f4f1ea; color: var(--text-dark); padding: 40px 20px; line-height: 1.6; }
+        .menu-container { max-width: 750px; margin: auto; background: var(--bg-cream); padding: 50px; border: 1px solid #e0d8c3; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
+        /* 裝飾框線 */
+        .menu-container::before { content: ""; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border: 1px solid #e0d8c3; pointer-events: none; }
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { font-family: 'Playfair Display', serif; font-size: 2.2em; letter-spacing: 2px; margin: 0; }
+        .subtitle { font-size: 0.9em; color: var(--gold); letter-spacing: 4px; font-weight: 600; text-transform: uppercase; }
+        
+        .section { margin-bottom: 35px; }
+        .section-header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--gold); padding-bottom: 5px; }
+        .section-header span { font-family: 'Playfair Display', serif; font-size: 1.2em; color: var(--gold); font-style: italic; margin-right: 12px; }
+        .section-header h3 { font-size: 1em; margin: 0; font-weight: 600; letter-spacing: 1px; }
+
+        .question { margin-bottom: 20px; }
+        .question-text { font-weight: 600; font-size: 0.95em; display: block; }
+        
+        /* 圓形評分按鈕樣式 */
+        .rating-row { display: flex; gap: 12px; margin-top: 8px; }
+        .rating-item { position: relative; cursor: pointer; }
+        .rating-item input { display: none; }
+        .rating-item span { display: inline-block; width: 32px; height: 32px; border: 1px solid #d1c9b3; text-align: center; line-height: 32px; border-radius: 50%; font-size: 0.85em; transition: 0.3s; }
+        .rating-item input:checked + span { background: var(--gold); color: white; border-color: var(--gold); }
+        
+        .desc { font-size: 0.8em; color: #888; margin-top: 4px; font-style: italic; }
+        textarea { width: 100%; height: 100px; background: transparent; border: 1px solid #e0d8c3; padding: 12px; font-family: inherit; font-size: 0.95em; margin-top: 10px; resize: none; box-sizing: border-box; }
+        select { width: 100%; padding: 10px; background: transparent; border: 1px solid #e0d8c3; font-family: inherit; margin-top: 10px; color: var(--text-dark); }
+        
+        .btn-submit { display: block; width: 100%; background: var(--text-dark); color: white; padding: 15px; border: none; font-size: 1em; letter-spacing: 2px; cursor: pointer; transition: 0.4s; margin-top: 30px; font-family: 'Noto Serif TC', serif; }
+        .btn-submit:hover { background: var(--gold); }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="menu-container">
+    <header>
+        <h1>SURVEY</h1>
+        <div class="subtitle" style="font-size: 24px;">曉明數學科期末聚餐回饋</div>
+    </header>
+
+    <form id="surveyForm">
+        <!-- Section 01: 環境與服務 -->
+        <div class="section">
+            <div class="section-header"><span>01</span><h3>環境與服務評分</h3></div>
+            <div class="question"><span class="question-text">1. 餐廳用餐氛圍與裝潢風格：</span><div class="rating-row" id="env_score"></div></div>
+            <div class="question"><span class="question-text">2. 服務人員態度與上餐速度：</span><div class="rating-row" id="service_score"></div></div>
+            <div class="question"><span class="question-text">3. 餐廳整潔度 (桌面、餐具、洗手間)：</span><div class="rating-row" id="clean_score"></div></div>
+            <div class="question"><span class="question-text">4. 餐廳地理位置與便利性：</span><div class="rating-row" id="loc_score"></div></div>
+        </div>
+
+        <!-- Section 02: 餐點品質 -->
+        <div class="section">
+            <div class="section-header"><span>02</span><h3>餐點品質評價</h3></div>
+            <div class="question">
+                <span class="question-text">5. 對於「附餐熔岩起士麵包」的評價：</span>
+                <div class="rating-row" id="bread_score"></div>
+                <div class="desc">※ 主餐均隨附之麵包</div>
+            </div>
+            <div class="question">
+                <span class="question-text">6. 對於「主餐」美味程度 (燉飯、麵、排餐)：</span>
+                <div class="rating-row" id="main_score"></div>
+                <div class="desc">※ 包含馬賽海鮮、黑麻油雞肉、椒粒海鹽烤半雞等</div>
+            </div>
+            <div class="question">
+                <span class="question-text">7. 對於「開胃菜與沙拉湯品」的評價：</span>
+                <div class="rating-row" id="app_score"></div>
+                <div class="desc">※ 包含海鹽脆薯、布拉塔沙拉、馬賽蝦汁清湯等</div>
+            </div>
+            <div class="question">
+                <span class="question-text">8. 對於「甜點、冰淇淋與飲品」的評價：</span>
+                <div class="rating-row" id="dessert_score"></div>
+                <div class="desc">※ 包含羅勒檸檬塔、歐培拉、甜橙咖啡、漢方茶等</div>
+            </div>
+        </div>
+
+        <!-- Section 03: 行政安排 -->
+        <div class="section">
+            <div class="section-header"><span>03</span><h3>行政安排回饋</h3></div>
+            <div class="question">
+                <span class="question-text">9. 本次餐點預算區間 ($750 - $850) 感受：</span>
+                <div style="margin-top:8px; font-size: 0.9em;">
+                    <label style="margin-right:15px;"><input type="radio" name="budget_feel" value="充足" required> 非常理想</label>
+                    <label style="margin-right:15px;"><input type="radio" name="budget_feel" value="尚可"> 預算尚可</label>
+                    <label><input type="radio" name="budget_feel" value="不足"> 建議調高</label>
+                </div>
+            </div>
+            <div class="question">
+                <span class="question-text">10. 關於「線上點餐統計系統」的使用感受：</span>
+                <div style="margin-top:8px; font-size: 0.9em;">
+                    <label style="margin-right:15px;"><input type="radio" name="system_feel" value="滿意" required> 摘要清晰</label>
+                    <label style="margin-right:15px;"><input type="radio" name="system_feel" value="普通"> 尚可</label>
+                    <label><input type="radio" name="system_feel" value="待改進"> 建議調整</label>
+                </div>
+            </div>
+            <div class="question">
+                <span class="question-text">11. 您會推薦此餐廳作為其它科室聚餐選擇嗎？</span>
+                <select name="recommend">
+                    <option value="強力推薦">強力推薦</option>
+                    <option value="考慮推薦">考慮推薦</option>
+                    <option value="不推薦">不推薦</option>
+                </select>
+            </div>
+            <div class="question">
+                <span class="question-text">12. 其他建議意見或想說的話：</span>
+                <textarea name="comments" placeholder="請在此留下您的寶貴建議..."></textarea>
+            </div>
+        </div>
+
+        <button type="button" id="submitBtn" class="btn-submit" onclick="sendData()">SUBMIT FEEDBACK</button>
+    </form>
+</div>
+
+<script>
+    // ==========================================
+    // 請在此處填入您的 GAS 部署網址
+    // ==========================================
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbvbUOom28Cj-1pGnMV0xe99gxucKPCpawHDeuEcMsVsYWO1lhfMCYzn0elJ8f6brKJg/exec";
+
+    // 動態生成 1-5 分的圓形按鈕
+    const ratingGroups = ['env_score', 'service_score', 'clean_score', 'loc_score', 'bread_score', 'main_score', 'app_score', 'dessert_score'];
+    ratingGroups.forEach(group => {
+        const div = document.getElementById(group);
+        for(let i=1; i<=5; i++) {
+            div.innerHTML += `<label class="rating-item"><input type="radio" name="${group}" value="${i}" required><span>${i}</span></label>`;
+        }
+    });
+
+    async function sendData() {
+        const form = document.getElementById('surveyForm');
+        if (!form.checkValidity()) { 
+            alert("請完整填寫 1-11 題評價項目，謝謝您的配合。"); 
+            return; 
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = "SENDING...";
+
+        const data = Object.fromEntries(new FormData(form).entries());
+
+        try {
+            // 使用 POST 方式傳送至 GAS
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify(data)
+            });
+            alert("提交成功！感謝您的寶貴回饋。");
+            form.reset();
+        } catch (e) {
+            alert("提交失敗，請檢查網址設定或連線狀態。");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "SUBMIT FEEDBACK";
+        }
+    }
+</script>
+</body>
+</html>
