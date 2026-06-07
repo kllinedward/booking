@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>馨苑台菜期末聚餐 點餐系統</title>
+<style>
+body { font-family: "Microsoft JhengHei", sans-serif; padding: 20px; background-color: #f8f9fa; color: #333; }
+.main-container { display: flex; gap: 20px; max-width: 1300px; margin: auto; }
+.left-panel { flex: 2; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); height: 92vh; overflow-y: auto; }
+.right-panel { flex: 0.8; background: #2c3e50; color: white; padding: 20px; border-radius: 8px; position: sticky; top: 20px; height: fit-content; }
+
+.recommend-box { background: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.95em; line-height: 1.6; }
+.category-header { background: #e67e22; color: white; padding: 8px 15px; margin: 20px 0 10px; border-radius: 4px; font-weight: bold; }
+.input-group { margin-bottom: 15px; }
+input[type="text"], select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+.required-text { color: #e74c3c; font-size: 0.8em; }
+
+.item-row { display: block; margin: 8px 0; cursor: pointer; font-size: 0.95em; padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
+.item-row:hover { background: #f1f2f6; }
+.disabled { color: #ccc; text-decoration: line-through; cursor: not-allowed; }
+.disabled:hover { background: transparent; }
+
+.btn-submit { background: #7f8c8d; color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; cursor: pointer; font-size: 1.1em; margin-top: 10px; font-weight: bold; transition: 0.3s; }
+.btn-submit.active { background: #27ae60; }
+.btn-clear { background: #e67e22; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+.status-hint { color: #f1c40f; font-weight: bold; margin: 15px 0; font-size: 1.1em; }
+
+/* 標記文字的顏色樣式 */
+.tag-veg { color: #27ae60; font-weight: bold; }
+.tag-spicy { color: #e74c3c; font-weight: bold; }
+.tag-rec { color: #d35400; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1 style="text-align:center; margin-bottom: 0;">期末聚餐 雲端點餐統計系統</h1>
+<div class="main-container">
+<div class="left-panel">
+<div class="recommend-box">
+💡 <strong>點餐規則與預算提醒</strong><br>
+• 今年度每人預算上限為 <strong>$1050元 (已含10%服務費)</strong>。<br>
+• 必點流程：1.個人套餐($249) ➔ 2.主餐 ➔ 3.湯品 ➔ 4.飲料 ➔ 5.甜點。<br>
+• <strong>升級優惠</strong>：個人套餐已含附屬果茶與甜食。湯品升級+$169；<strong>換購黑咖啡不加價</strong>、其餘140元以上飲料可折抵100元；加點其他甜品+$100。<br>
+• 若以上點完預算尚有結餘，才可於「6. 單點解饞」加點。<br>
+• <strong>菜色標示說明</strong>：<span class="tag-veg">(素)</span> 可做素食、<span class="tag-spicy">(辣)</span> 內含辣椒、<span class="tag-rec">(推)</span> 主廚推薦。
+</div>
+
+<div class="input-group">
+<label><strong>1. 同仁姓名</strong> <span class="required-text">*必填</span></label>
+<input type="text" id="userName" placeholder="請輸入姓名" oninput="updateUI()">
+</div>
+<div class="input-group">
+<label><strong>2. 前往方式</strong></label>
+<select id="transport">
+<option value="自行前往">自行前往</option>
+<option value="尚無交通方式">尚無交通方式</option>
+<option value="共乘">共乘</option>
+</select>
+</div>
+<hr>
+<div id="menuContainer"></div>
+</div>
+
+<div class="right-panel">
+<h3 style="border-bottom: 1px solid #455a64; padding-bottom: 10px;">您的點餐摘要</h3>
+<div id="selectedList" style="min-height: 100px; font-size: 0.95em; line-height: 1.6;">尚未選擇餐點</div>
+<hr style="border: 0.5px solid #455a64;">
+<div style="font-size: 1.1em; margin-bottom: 5px;">餐點小計：$<span id="subTotalDisplay">249</span></div>
+<div style="font-size: 1.5em; font-weight: bold; color: #f39c12;">總金額(含10%)：$<span id="totalDisplay">274</span></div>
+<div id="statusHint" class="status-hint">⚠️ 請先填寫姓名</div>
+<button id="submitBtn" class="btn-submit" onclick="uploadData()" disabled>確認提交至雲端</button>
+<button class="btn-clear" onclick="clearMenu()">清除重新點餐</button>
+</div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyLVh4IDUXPEnl9zF_k42VIJ7oWTMzeBWGg0FR61tKRVWZUUcEt4o7cATmMGqgtzltL/exec";
+const maxBudget = 1050; // 已將預算上限提高為 1050
+let currentItems = [];
+
+const menuData = [
+{ cat: "1. 必點基本組合", type: "checkbox", items: [
+    { n: "馨滿意足 個人套餐 (馨自慢三小品1道、季節蔬食1份、寶島米食1份、馨品甜食1份、果茶飲品1杯、風味主菜 自選1道)", p: 249, checked: true, disabled: true }
+]},
+{ cat: "2. 風味主菜 (請擇一)", type: "radio", name: "main", items: [
+    { n: "三杯臺灣有機菇 (素)(辣)", p: 280 }, { n: "家常燒蛋燴豆腐 (素)", p: 280 }, { n: "菠蘿遇見櫻桃鴨 (推)", p: 290 }, { n: "芋奶鮮嫩雞骨球", p: 290 }, { n: "炙烤寶島牛奶魚", p: 320 }, { n: "蕈菇月見雨來菇 (素)", p: 350 }, { n: "酸白菜炒活菌豬 (推)(辣)", p: 350 }, { n: "古早味梅菜扣肉 (辣)", p: 350 }, { n: "桂花烏梅糖醋雞", p: 360 }, { n: "小米金瓜咖哩蔬 (素)", p: 360 }, { n: "蝦仁月見雨來菇 (推)(辣)", p: 380 }, { n: "好事會花生豬腳", p: 380 }, { n: "御膳紅燒牛三寶 (辣)", p: 400 }, { n: "馬告黑椒牛菲力 (推)(辣)", p: 400 }, { n: "紅燒素齋獅子頭 (素)", p: 420 }, { n: "三杯醬爆鮮中卷 (辣)", p: 420 }
+]},
+{ cat: "3. 暖馨湯品 (升級均一價 $169，請擇一)", type: "radio", name: "soup", items: [
+    { n: "【不升級湯品】", p: 0, checked: true }, 
+    { n: "清燉菱角排骨湯", p: 169 }, { n: "古早鹹菜豬肚湯", p: 169 }, { n: "陶甕慢窯滴雞精", p: 169 }, { n: "補氣黑蒜燉雞湯 (推)", p: 169 }, { n: "星馬經典肉骨茶 (推)", p: 169 }, { n: "玉筍嫩鴨老火湯", p: 169 }, { n: "剝皮辣椒燉雞湯 (推)", p: 169 }, { n: "黃金醬筍燉雞湯 (推)", p: 169 }, { n: "經典臺灣麻油雞", p: 169 }, { n: "什錦菌菇素齋湯 (素)", p: 169 }
+]},
+{ cat: "4. 飲品 (黑咖啡不加價，其餘140元以上已折抵100元，請擇一)", type: "radio", name: "drink", items: [
+    { n: "【維持套餐原附果茶】", p: 0, checked: true }, 
+    { n: "泡沫黑咖啡 (不加價)", p: 0 }, { n: "海鹽奶蓋咖啡", p: 40 }, { n: "生津止渴烏梅汁", p: 40 }, { n: "拿鐵咖啡", p: 60 }, { n: "冷壓芭樂檸檬飲", p: 60 }, { n: "滴濾咖啡", p: 80 }, { n: "冰釀咖啡", p: 80 }, { n: "柚子檸檬草康普茶", p: 80 }, { n: "客家·金柑心", p: 80 }, { n: "閩南·鳳梨旺旺來", p: 80 }, { n: "新住民·越南滴滴露", p: 80 }, { n: "原住民·馥香月桃", p: 80 }, { n: "眷村·醃梅啡茶", p: 90 }, { n: "平野·蜜檸啡醋", p: 90 }, { n: "臺灣客家酸柑茶", p: 100 }, { n: "臺灣玫瑰紅棗茶", p: 100 }, { n: "阿里山咖啡葉茶", p: 100 }, { n: "海洋·海味烏金", p: 100 }, { n: "山林·咖啡甘糀", p: 100 }
+]},
+{ cat: "5. 甜點 (加點均一價 $100，請擇一)", type: "radio", name: "dessert", items: [
+    { n: "【維持套餐原附甜食】", p: 0, checked: true }, 
+    { n: "焦糖鮮奶布丁", p: 100 }, { n: "鹿港麵茶蛋糕", p: 100 }, { n: "永續咖啡酒提拉米蘇", p: 100 }, { n: "臺灣山茶巴斯克", p: 100 }, { n: "芋香藏心巴斯克", p: 100 }, { n: "滸苔海鹽冰淇淋", p: 100 }
+]},
+{ cat: "6. 單點解饞 (若預算有剩可加選)", type: "checkbox", name: "side", items: [
+    { n: "寶島紅藜香米飯 (推)", p: 30 }, { n: "香Q滷米血", p: 80 }, { n: "滷鴨血的誘惑 (辣)", p: 90 }, { n: "金黃酥炸蛋豆腐", p: 100 }, { n: "經典臺灣香腸 (推)", p: 130 }, { n: "清炒有機鮮蔬 (素)", p: 180 }, { n: "香酥芋泥鴨捲 (推)", p: 180 }, { n: "東石蚵嗲捲 (推)", p: 180 }, { n: "金沙地瓜條 (推)", p: 180 }, { n: "爐烤紅鬚玉米筍 (素)", p: 180 }, { n: "蒜泥活菌豬", p: 200 }, { n: "炙烤椒香鹹豬肉", p: 220 }, { n: "酸桔田園蔬果沙拉 (素)", p: 350 }, { n: "芋頭海鮮米粉湯 (素)", p: 350 }
+]}
+];
+
+// 針對有標籤的文字變色
+function formatItemName(name) {
+    return name.replace('(素)', '<span class="tag-veg">(素)</span>')
+               .replace('(辣)', '<span class="tag-spicy">(辣)</span>')
+               .replace('(推)', '<span class="tag-rec">(推)</span>');
+}
+
+function render() {
+    const container = document.getElementById('menuContainer');
+    let html = '';
+    menuData.forEach(cat => {
+        html += `<div class="category-header">${cat.cat}</div>`;
+        cat.items.forEach(item => {
+            let isChecked = item.checked ? 'checked' : '';
+            let isDisabled = item.disabled ? 'disabled' : '';
+            let nameAttr = cat.name ? `name="${cat.name}"` : '';
+            html += `<label class="item-row">
+                <input type="${cat.type}" ${nameAttr} value="${item.n}" data-price="${item.p}" ${isChecked} ${isDisabled} onchange="updateUI()">
+                ${formatItemName(item.n)} (${item.p === 0 ? '不加價' : '+$' + item.p})</label>`;
+        });
+    });
+    container.innerHTML = html;
+    updateUI();
+}
+
+function updateUI() {
+    const name = document.getElementById('userName').value.trim();
+    let subTotal = 0;
+    let selected = [];
+
+    document.querySelectorAll('#menuContainer input:checked').forEach(input => {
+        let n = input.value;
+        let p = parseInt(input.getAttribute('data-price'));
+        selected.push({n, p});
+        subTotal += p;
+    });
+
+    currentItems = selected;
+    let totalWithService = Math.round(subTotal * 1.1); 
+    
+    document.getElementById('subTotalDisplay').innerText = subTotal;
+    document.getElementById('totalDisplay').innerText = totalWithService;
+    
+    let displayList = selected.filter(i => i.p > 0 || i.n.includes('套餐') || i.n.includes('黑咖啡')).map(i => i.n);
+    document.getElementById('selectedList').innerHTML = displayList.map(n => formatItemName(n)).join(', ') || "尚未選擇";
+
+    document.querySelectorAll('#menuContainer input:not(:checked)').forEach(input => {
+        if(input.value.includes("套餐 個人套餐")) return; 
+        
+        let p = parseInt(input.getAttribute('data-price'));
+        let currentGroupChecked = document.querySelector(`input[name="${input.name}"]:checked`);
+        let currentGroupPrice = currentGroupChecked ? parseInt(currentGroupChecked.getAttribute('data-price')) : 0;
+        let diff = (input.type === 'radio') ? (p - currentGroupPrice) : p;
+        
+        if (Math.round((subTotal + diff) * 1.1) > maxBudget) {
+            input.disabled = true;
+            input.parentElement.classList.add('disabled');
+        } else {
+            input.disabled = false;
+            input.parentElement.classList.remove('disabled');
+        }
+    });
+
+    const btn = document.getElementById('submitBtn');
+    const hint = document.getElementById('statusHint');
+    const isNameOk = (name !== "");
+    const isBudgetOk = (totalWithService <= maxBudget);
+    
+    const hasMainCourse = document.querySelector('input[name="main"]:checked');
+
+    if (!isNameOk) {
+        btn.disabled = true; btn.classList.remove('active');
+        hint.innerText = "⚠️ 請先填寫姓名"; hint.style.color = "#f1c40f";
+    } else if (!hasMainCourse) {
+        btn.disabled = true; btn.classList.remove('active');
+        hint.innerText = "⚠️ 請選擇一道風味主菜"; hint.style.color = "#f1c40f";
+    } else if (!isBudgetOk) {
+        btn.disabled = true; btn.classList.remove('active');
+        hint.innerText = `❌ 超過 $${maxBudget} 預算上限`; hint.style.color = "#e74c3c";
+    } else {
+        btn.disabled = false; btn.classList.add('active');
+        let remaining = maxBudget - totalWithService;
+        hint.innerText = `✅ 預算檢核通過 (尚餘額度 $${remaining})`; 
+        hint.style.color = "#2ecc71";
+    }
+}
+
+function clearMenu() {
+    document.querySelectorAll('#menuContainer input').forEach(input => {
+        if (input.type === 'checkbox' && !input.disabled) input.checked = false;
+        if (input.type === 'radio') {
+            input.checked = input.value.includes('不升級') || input.value.includes('維持');
+        }
+    });
+    updateUI();
+}
+
+async function uploadData() {
+    const name = document.getElementById('userName').value;
+    const transport = document.getElementById('transport').value;
+    const btn = document.getElementById('submitBtn');
+    const totalWithService = document.getElementById('totalDisplay').innerText;
+    btn.disabled = true; btn.innerText = "提交中...";
+    try {
+        await fetch(SCRIPT_URL, {
+            method: "POST", mode: "no-cors",
+            body: JSON.stringify({ name, transport, items: currentItems.map(i=>i.n).join('+'), total: totalWithService })
+        });
+        alert("提交成功！");
+        clearMenu(); 
+        document.getElementById('userName').value = '';
+        btn.innerText = "確認提交至雲端";
+    } catch (e) { 
+        alert("失敗"); 
+        btn.disabled = false; 
+        btn.innerText = "確認提交至雲端";
+    }
+}
+
+render();
+</script>
+</body>
+</html>
